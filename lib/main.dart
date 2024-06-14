@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:get/route_manager.dart';
+import 'package:notification_overlay/ride.dart';
 import 'package:overlay_pop_up/overlay_pop_up.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:vibration/vibration.dart';
@@ -10,7 +12,8 @@ void main() {
 }
 
 final ValueNotifier<bool> isActive = ValueNotifier<bool>(false);
-final ValueNotifier<String> overlayPosition = ValueNotifier<String>('');
+final ValueNotifier<Size> overlaySize =
+    ValueNotifier<Size>(const Size(860, double.infinity));
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -37,10 +40,10 @@ class MyApp extends StatelessWidget {
               ),
               MaterialButton(
                 onPressed: () async {
-                  final vibcheck = await Vibration.hasVibrator();
-                  if (vibcheck == true) {
-                    Vibration.vibrate(pattern: [500, 500,500, 500]);
-                  }
+                  // final vibcheck = await Vibration.hasVibrator();
+                  // if (vibcheck == true) {
+                  //   Vibration.vibrate(pattern: [500, 500, 500, 500]);
+                  // }
                   final permission = await OverlayPopUp.checkPermission();
                   if (permission) {
                     if (!await OverlayPopUp.isActive()) {
@@ -49,6 +52,8 @@ class MyApp extends StatelessWidget {
                         screenOrientation: ScreenOrientation.portrait,
                         closeWhenTapBackButton: true,
                         isDraggable: true,
+                        // verticalAlignment: Gravity.verticalGravityMask,
+                        // horizontalAlignment: Gravity.centerHorizontal,
                       );
                       isActive.value = result;
                     } else {
@@ -68,42 +73,12 @@ class MyApp extends StatelessWidget {
                 onPressed: () async {
                   if (await OverlayPopUp.isActive()) {
                     await OverlayPopUp.sendToOverlay(
-                        {'mssg': 'Hello from dart!'});
+                        {'mssg': 'New Trip \nRequest'});
                   }
                 },
                 color: Colors.red[900],
                 child: const Text('Send data',
                     style: TextStyle(color: Colors.white)),
-              ),
-              MaterialButton(
-                onPressed: () async {
-                  if (await OverlayPopUp.isActive()) {
-                    await OverlayPopUp.updateOverlaySize(
-                        width: 500, height: 500);
-                  }
-                },
-                color: Colors.red[900],
-                child: const Text('Update overlay size',
-                    style: TextStyle(color: Colors.white)),
-              ),
-              MaterialButton(
-                onPressed: () async {
-                  if (await OverlayPopUp.isActive()) {
-                    final position = await OverlayPopUp.getOverlayPosition();
-                    overlayPosition.value = (position?['overlayPosition'] != null)
-                        ? position!['overlayPosition'].toString()
-                        : '';
-                  }
-                },
-                color: Colors.red[900],
-                child: const Text('Get overlay position',
-                    style: TextStyle(color: Colors.white)),
-              ),
-              ValueListenableBuilder<String>(
-                valueListenable: overlayPosition,
-                builder: (context, value, child) {
-                  return Text('Current position: $value');
-                },
               ),
             ],
           ),
@@ -123,23 +98,87 @@ Future<void> overlayStatus() async {
 @pragma("vm:entry-point")
 void overlayPopUp() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: OverlayWidget(),
-  ));
+  runApp(const OverlayApp());
 }
 
-class OverlayWidget extends StatelessWidget {
-  const OverlayWidget({super.key});
+class OverlayApp extends StatelessWidget {
+  const OverlayApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<Size>(
+      valueListenable: overlaySize,
+      builder: (context, size, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: OverlayWidget(size: size),
+        );
+      },
+    );
+  }
+}
+
+class OverlayWidget extends StatelessWidget {
+  final Size size;
+
+  const OverlayWidget({super.key, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return size.width == 200 && size.height == 400
+        ? smallOverlayContent()
+        : largeOverlayContent();
+  }
+
+  Widget smallOverlayContent() {
     return Scaffold(
-      // backgroundColor: Colors.black,
       backgroundColor: Colors.transparent,
       body: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.all(1.8),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // SizedBox(
+            //   child: StreamBuilder(
+            //     stream: OverlayPopUp.dataListener,
+            //     initialData: null,
+            //     builder: (BuildContext context, AsyncSnapshot snapshot) {
+            //       return Text(
+            //         snapshot.data?['mssg'] ?? '',
+            //         style: const TextStyle(fontSize: 14),
+            //         textAlign: TextAlign.center,
+            //       );
+            //     },
+            //   ),
+            // ),
+            const SizedBox(height: 10),
+            FloatingActionButton(
+              shape: const CircleBorder(),
+              backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+              elevation: 4,
+              onPressed: () async {
+                if (await OverlayPopUp.isActive()) {
+                  await OverlayPopUp.updateOverlaySize(height: 860);
+                  overlaySize.value = const Size(860, 860);
+                }
+              },
+              child: Image.network(
+                  'https://oraride.com/images/oraride-logo-white.png'),
+            ),
+            // Add other widgets specific to the small overlay
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget largeOverlayContent() {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Padding(
+        padding: const EdgeInsets.all(1.8),
+        child: Column(
+          // mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
                 padding: const EdgeInsets.only(left: 5),
@@ -160,20 +199,22 @@ class OverlayWidget extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: Colors.black,
+                  color: const Color.fromARGB(255, 38, 38, 38),
                 ),
                 child: Column(
                   // mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
+                        Row(
                           children: [
                             CircleAvatar(
-                              radius: 20,
+                              backgroundColor: Colors.black,
+                              radius: 30,
+                              child: Image.network(
+                                  'https://oraride.com/images/oraride-logo-white.png'),
                             ),
-                            Padding(
+                            const Padding(
                               padding: EdgeInsets.all(5.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,6 +238,21 @@ class OverlayWidget extends StatelessWidget {
                             )
                           ],
                         ),
+                        const Spacer(),
+                        IconButton(
+                            onPressed: () async {
+                              if (await OverlayPopUp.isActive()) {
+                                await OverlayPopUp.updateOverlaySize(
+                                    width: 200, height: 400);
+                                overlaySize.value = const Size(200, 400);
+                              }
+                              
+                            },
+                            icon: const Icon(
+                              Icons.close_fullscreen,
+                              color: Colors.white70,
+                              size: 20,
+                            )),
                         IconButton(
                             onPressed: () async {
                               await OverlayPopUp.closeOverlay();
@@ -219,8 +275,8 @@ class OverlayWidget extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.location_on,
-                                color: Colors.white70,
-                                size: 15,
+                                color: Color.fromARGB(179, 255, 0, 0),
+                                size: 18,
                               ),
                               Text(
                                 'Data', //let it be customer for privacy
@@ -234,13 +290,16 @@ class OverlayWidget extends StatelessWidget {
                           Icon(
                             Icons.more_vert_sharp,
                             color: Colors.white70,
-                            size: 15,
+                            size: 18,
                           ),
                           Row(
                             children: [
+                              SizedBox(
+                                width: 1,
+                              ),
                               Icon(
                                 Icons.fiber_manual_record,
-                                color: Colors.white70,
+                                color: Color.fromARGB(179, 68, 118, 255),
                                 size: 15,
                               ),
                               Text(
@@ -282,16 +341,9 @@ class OverlayWidget extends StatelessWidget {
                         ),
                       ],
                     ),
-
-                    // const SizedBox(
-                    //   height: 8,
-                    // ),
                     const Divider(
                       thickness: 0.5,
                     ),
-                    // const SizedBox(
-                    //   height: 8,
-                    // ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -313,13 +365,10 @@ class OverlayWidget extends StatelessWidget {
                         ),
                         ElevatedButton(
                           onPressed: () async {
-                            await OverlayPopUp.closeOverlay();
-                            Restart.restartApp();
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //       builder: (context) => const RidePage()),
-                            // );
+                            //  Restart.restartApp();
+                            Get.to(const RidePage());
+                            // await OverlayPopUp.closeOverlay();
+                           
                           },
                           child: const Text(
                             'OPEN APP', //let it be customer for privacy
@@ -331,31 +380,6 @@ class OverlayWidget extends StatelessWidget {
                         )
                       ],
                     )
-                    // SizedBox(
-                    //   child: StreamBuilder(
-                    //     stream: OverlayPopUp.dataListener,
-                    //     initialData: null,
-                    //     builder: (BuildContext context, AsyncSnapshot snapshot) {
-                    //       return Text(
-                    //         snapshot.data?['mssg'] ?? '',
-                    //         style: const TextStyle(fontSize: 14),
-                    //         textAlign: TextAlign.center,
-                    //       );
-                    //     },
-                    //   ),
-                    // ),
-                    // const SizedBox(height: 10),
-                    // FloatingActionButton(
-                    //   shape: const CircleBorder(),
-                    //   backgroundColor: Colors.red[900],
-                    //   elevation: 12,
-                    //   onPressed: () async {
-                    //     await OverlayPopUp.closeOverlay();
-                    //     Restart.restartApp();
-                    //   },
-                    //   child: const Text('X',
-                    //       style: TextStyle(color: Colors.white, fontSize: 20)),
-                    // ),
                   ],
                 ),
               ),
@@ -366,57 +390,3 @@ class OverlayWidget extends StatelessWidget {
     );
   }
 }
-// @pragma("vm:entry-point")
-// void overlayPopUp() {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   runApp(const MaterialApp(
-//     debugShowCheckedModeBanner: false,
-//     home: OverlayWidget(),
-//   ));
-// }
-
-// class OverlayWidget extends StatelessWidget {
-//   const OverlayWidget({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Material(
-//       color: Colors.transparent,
-//       child: Container(
-//         padding: const EdgeInsets.all(15),
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//             SizedBox(
-//               child: StreamBuilder(
-//                 stream: OverlayPopUp.dataListener,
-//                 initialData: null,
-//                 builder: (BuildContext context, AsyncSnapshot snapshot) {
-//                   return Text(
-//                     snapshot.data?['mssg'] ?? '',
-//                     style: const TextStyle(fontSize: 14),
-//                     textAlign: TextAlign.center,
-//                   );
-//                 },
-//               ),
-//             ),
-//             const SizedBox(height: 10),
-//             FloatingActionButton(
-//               shape: const CircleBorder(),
-//               backgroundColor: Colors.red[900],
-//               elevation: 12,
-//               onPressed: () async {
-//                 await OverlayPopUp.closeOverlay();
-//                 Restart.restartApp();
-//               },
-//               child: const Text('X',
-//                   style: TextStyle(color: Colors.white, fontSize: 20)),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-
