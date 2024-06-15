@@ -25,13 +25,13 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-            title: const Text('Flutter overlay pop up'),
-            backgroundColor: Colors.red[900]),
+        
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              bodyText('text test'),
+              const Text('This is an example of Overlay Pop UP and overlay bubble.'),
               ValueListenableBuilder<bool>(
                 valueListenable: isActive,
                 builder: (context, value, child) {
@@ -40,10 +40,10 @@ class MyApp extends StatelessWidget {
               ),
               MaterialButton(
                 onPressed: () async {
-                  // final vibcheck = await Vibration.hasVibrator();
-                  // if (vibcheck == true) {
-                  //   Vibration.vibrate(pattern: [500, 500, 500, 500]);
-                  // }
+                  final vibcheck = await Vibration.hasVibrator();
+                  if (vibcheck == true) {
+                    Vibration.vibrate(pattern: [500, 500, 500, 500]);
+                  }
                   final permission = await OverlayPopUp.checkPermission();
                   if (permission) {
                     if (!await OverlayPopUp.isActive()) {
@@ -52,8 +52,6 @@ class MyApp extends StatelessWidget {
                         screenOrientation: ScreenOrientation.portrait,
                         closeWhenTapBackButton: true,
                         isDraggable: true,
-                        // verticalAlignment: Gravity.verticalGravityMask,
-                        // horizontalAlignment: Gravity.centerHorizontal,
                       );
                       isActive.value = result;
                     } else {
@@ -64,7 +62,7 @@ class MyApp extends StatelessWidget {
                     await OverlayPopUp.requestPermission();
                   }
                 },
-                color: Colors.red[900],
+                color: Colors.black,
                 child: const Text('Show overlay',
                     style: TextStyle(color: Colors.white)),
               ),
@@ -76,7 +74,7 @@ class MyApp extends StatelessWidget {
                         {'mssg': 'New Trip \nRequest'});
                   }
                 },
-                color: Colors.red[900],
+                color: Colors.black,
                 child: const Text('Send data',
                     style: TextStyle(color: Colors.white)),
               ),
@@ -125,35 +123,23 @@ class OverlayWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return size.width == 200 && size.height == 400
+    return size.width == 200 && size.height == 235
         ? smallOverlayContent()
         : largeOverlayContent();
   }
 
   Widget smallOverlayContent() {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Padding(
-        padding: const EdgeInsets.all(1.8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // SizedBox(
-            //   child: StreamBuilder(
-            //     stream: OverlayPopUp.dataListener,
-            //     initialData: null,
-            //     builder: (BuildContext context, AsyncSnapshot snapshot) {
-            //       return Text(
-            //         snapshot.data?['mssg'] ?? '',
-            //         style: const TextStyle(fontSize: 14),
-            //         textAlign: TextAlign.center,
-            //       );
-            //     },
-            //   ),
-            // ),
-            const SizedBox(height: 10),
-            FloatingActionButton(
-              shape: const CircleBorder(),
+    return Padding(
+      padding: const EdgeInsets.all(0),
+      child: SafeArea(
+        child: SizedBox(
+          height: 235,
+          width: 200,
+          child: Center(
+            child: FloatingActionButton(
+              shape: const CircleBorder(
+               
+              ),
               backgroundColor: const Color.fromARGB(255, 0, 0, 0),
               elevation: 4,
               onPressed: () async {
@@ -162,12 +148,18 @@ class OverlayWidget extends StatelessWidget {
                   overlaySize.value = const Size(860, 860);
                 }
               },
-              child: Image.network(
-                  'https://oraride.com/images/oraride-logo-white.png'),
+              child: SizedBox(
+                width: 45,
+                child: ClipOval(
+                  child: Image.network('https://avatars.githubusercontent.com/u/103909915?v=4',
+
+                      fit: BoxFit.cover,
+                      ),
+                ),
+              ),
             ),
-            // Add other widgets specific to the small overlay
-          ],
-        ),
+          ),
+          ),
       ),
     );
   }
@@ -178,7 +170,6 @@ class OverlayWidget extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(1.8),
         child: Column(
-          // mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
                 padding: const EdgeInsets.only(left: 5),
@@ -211,8 +202,13 @@ class OverlayWidget extends StatelessWidget {
                             CircleAvatar(
                               backgroundColor: Colors.black,
                               radius: 30,
-                              child: Image.network(
-                                  'https://oraride.com/images/oraride-logo-white.png'),
+                              child: ClipOval(
+                                child: Image.network(
+                                  'https://avatars.githubusercontent.com/u/103909915?v=4',
+                                  fit: BoxFit.cover,
+                                    
+                                    ),
+                              ),
                             ),
                             const Padding(
                               padding: EdgeInsets.all(5.0),
@@ -227,7 +223,7 @@ class OverlayWidget extends StatelessWidget {
                                         fontSize: 14),
                                   ),
                                   Text(
-                                    'Data', //let it be customer for privacy
+                                    'Data', 
                                     style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w300,
@@ -243,8 +239,8 @@ class OverlayWidget extends StatelessWidget {
                             onPressed: () async {
                               if (await OverlayPopUp.isActive()) {
                                 await OverlayPopUp.updateOverlaySize(
-                                    width: 200, height: 400);
-                                overlaySize.value = const Size(200, 400);
+                                    width: 200, height: 235);
+                                overlaySize.value = const Size(200, 235);
                               }
                               
                             },
@@ -279,7 +275,7 @@ class OverlayWidget extends StatelessWidget {
                                 size: 18,
                               ),
                               Text(
-                                'Data', //let it be customer for privacy
+                                'Data', 
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w300,
@@ -303,7 +299,7 @@ class OverlayWidget extends StatelessWidget {
                                 size: 15,
                               ),
                               Text(
-                                'Data', //let it be customer for privacy
+                                'Data', 
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w300,
@@ -332,7 +328,7 @@ class OverlayWidget extends StatelessWidget {
                               borderRadius: BorderRadius.circular(3),
                               color: Colors.green),
                           child: const Text(
-                            'STATUS', //let it be customer for privacy
+                            'STATUS', 
                             style: TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.w900,
@@ -371,7 +367,7 @@ class OverlayWidget extends StatelessWidget {
                            
                           },
                           child: const Text(
-                            'OPEN APP', //let it be customer for privacy
+                            'OPEN APP', 
                             style: TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.w700,
@@ -389,4 +385,8 @@ class OverlayWidget extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget bodyText(String text) {
+  return  Text(text,style: const TextStyle(fontSize: 14,fontWeight: FontWeight.w200),);
 }
