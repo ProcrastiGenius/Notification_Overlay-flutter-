@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "722363361565",
+    "project_id": "notification-over",
+    "storage_bucket": "notification-over.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:722363361565:android:3944ff87a5c36e0c9799f4",
+        "android_client_info": {
+          "package_name": "com.example.notification_overlay"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPQtGwEWOgL6UQVDWA61ss_98bYEG0KFk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
